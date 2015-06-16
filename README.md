@@ -2,7 +2,7 @@
 automatically send user/password to http proxy server so you do not need to input it manually<br><br>
 
 Example:<br>
-Run:<br>
+Run:  (please install node.js first)<br>
         node proxy-login-automator.js  --port 8600 --remote_host real_proxy_ip --remote_port 8080 --usr usr1 --pwd password1<br>
 
 then Run:<br>
