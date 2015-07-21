@@ -13,12 +13,12 @@ then Run:<br>
 <br>
 <br>
 Usage of parameters: <br>
-        [--host host]           listening address. Default: localhost. (* means all interfaces) <br>
-        [--port port]           listening port. Default: 8080 <br>
-        <--remote_host host>            real proxy server address <br>
-        [--remote_port port]            real proxy server port. Default: 8080 <br>
-        [--pac urlPath]         proxy_auto_config_file_url_path <br>
-        [--usr user]            proxy user id <br>
-        [--pwd password]                proxy user password <br>
+        -local_host host           listening address. Default: localhost. (* means all interfaces) <br>
+        -local_port port           listening port. Default: 8080 <br>
+        -remote_host host            real proxy server address <br>
+        -remote_port port            real proxy server port. Default: 8080 <br>
+        --usr user            proxy user id <br>
+        --pwd password                proxy user password <br>
+        --as_pac_server true or false \t\t' + 'used as pac(proxy auto configuration script) server. Default: no<br>
 
 
