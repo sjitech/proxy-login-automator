@@ -178,7 +178,7 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
                     }
                     return matched_quot + 'PROXY ' + local_host + ':' + _local_port + matched_quot;
                 });
-                console.log('return patched pac');
+                //console.log('return patched pac');
                 res.end(s);
             }).on('error', dummy);
         });
