@@ -23,7 +23,7 @@ function main() {
             + '\t-remote_port port\t\t' + 'real proxy server port. Default: 8080\n'
             + '\t-usr user\t\t' + 'proxy user id\n'
             + '\t-pwd password\t\t' + 'proxy user password\n'
-            + '\t-as_pac_server true or false \t\t' + 'used as pac(proxy auto configuration script) server. Default: no\n'
+            + '\t-as_pac_server true or false \t\t' + 'used as pac(proxy auto configuration) server. Default: no\n'
         );
     console.error('Using parameters:\n' + JSON.stringify(cfg, null, '  '));
     cfg.buf_proxy_basic_auth = new Buffer('Proxy-Authorization: Basic ' + new Buffer(cfg.usr + ':' + cfg.pwd).toString('base64'));
