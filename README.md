@@ -8,7 +8,7 @@ You run following command to create a local trampoline at localhost:8081<br>
 
     node proxy-login-automator.js  -local_port 8081 -remote_host real_proxy_ip -remote_port 8080 -usr user1 -pwd password1
 
-Then you can set your browser's proxy ip:port = localhost:8081<br>
+Then you can set your browser's proxy ip:port = localhost:8081 manually or close Chrome then run following command<br>
 
     path_of_Chrome --proxy-server=http://localhost:8081
 
@@ -19,7 +19,7 @@ You run following command to create a trampoline at http://localhost:65000//real
 
 	node proxy-login-automator.js  -local_port 65000 -remote_host real_proxy_ip -remote_port 80 -usr usr1 -pwd password1 -as_pac_server true
 
-Then you can set your browser's PAC url = http://localhost:65000/real_pac_path<br>
+Then you can set your browser's PAC url = http://localhost:65000/real_pac_path manually or close Chrome then run following command<br>
 
 	path_of_Chrome --proxy-pac-url=http://localhost:65000/real_pac_path
 
