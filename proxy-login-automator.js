@@ -162,7 +162,7 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
 
             var buf_ary = [];
             internal_res.on('data', function (buf) {
-                //console.log('<<<<' + (Date.t=new Date()) + '.' + Date.t.getMilliseconds() + '\n' + buf.toString('ascii'));
+                // console.log('<<<<' + (Date.t=new Date()) + '.' + Date.t.getMilliseconds() + '\n' + buf.toString('ascii'));
                 buf_ary.push(buf);
             }).on('end', function () {
                 var s = Buffer.concat(buf_ary).toString();
@@ -176,7 +176,7 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
                         proxyAddrMap[remoteAddr] = _local_port;
                         createPortForwarder(local_host, _local_port, matched_remote_host, _remote_port, buf_proxy_basic_auth);
                     }
-                    return matched_quot + 'PROXY ' + local_host + ':' + _local_port + matched_quot;
+                    return matched_quot + 'PROXY localhost:' + _local_port + matched_quot;
                 });
                 //console.log('return patched pac');
                 res.end(s);
