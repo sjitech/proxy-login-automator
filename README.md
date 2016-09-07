@@ -1,7 +1,19 @@
 # proxy-password-automator
 automatically send user/password to http proxy server so you do not need to input it manually.
 
-please install node.js first.
+- please install node.js first.
+
+- Usage of parameters:
+
+    ```
+    -local_host host           listening address. Default: localhost. (* means all interfaces)
+    -local_port port           listening port. Default: 8080
+    -remote_host host          real proxy server address
+    -remote_port port          real proxy server port. Default: 8080
+    -usr user                  proxy user id
+    -pwd password              proxy user password
+    -as_pac_server true or false   used as pac(proxy auto configuration) server. Default: no
+    ```
 
 ##Example1: Normal http/https proxy server
 - You have a proxy server `real_proxy_ip:8080`
@@ -32,16 +44,4 @@ please install node.js first.
 	path_of_Chrome --proxy-pac-url=http://localhost:65000/real_pac_path
 	```
 
-----
-##Usage of parameters:
-
-    ```
-    -local_host host           listening address. Default: localhost. (* means all interfaces)
-    -local_port port           listening port. Default: 8080
-    -remote_host host          real proxy server address
-    -remote_port port          real proxy server port. Default: 8080
-    -usr user                  proxy user id
-    -pwd password              proxy user password
-    -as_pac_server true or false   used as pac(proxy auto configuration) server. Default: no
-    ```
 Good luck
