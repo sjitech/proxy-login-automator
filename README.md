@@ -1,30 +1,41 @@
 # proxy-password-automator
-automatically send user/password to http proxy server so you do not need to input it manually.<br><br>
-please install node.js first.<br><br>
+automatically send user/password to http proxy server so you do not need to input it manually.
+
+please install node.js first.
 
 ##Example1: Normal http/https proxy server
-You have a proxy server real_proxy_ip:8080<br><br>
-You run following command to create a local trampoline at localhost:8081<br>
+- You have a proxy server `real_proxy_ip:8080`
+- You run following command to create a local trampoline at `localhost:8081`
 
+    ```
     node proxy-login-automator.js  -local_port 8081 -remote_host real_proxy_ip -remote_port 8080 -usr user1 -pwd password1
+    ```
 
-Then you can set your browser's proxy ip:port = localhost:8081 manually or close Chrome then run following command<br>
+- Then you can set your browser's proxy ip:port = `localhost:8081` manually or close Chrome then run following command
 
+    ```
     path_of_Chrome --proxy-server=http://localhost:8081
+    ```
 
 ##Example2: PAC(proxy auto configuration) server
-You have a pac server serving at http://real_proxy_ip:80/real_pac_path<br>
-You run following command to create a trampoline at http://localhost:65000//real_pac_path<br>
-(please specify large local port number because i use multiple local port sequentially like 65001, 65002, ....)<br>
+- You have a pac server serving at `http://real_proxy_ip:80/real_pac_path`
+- You run following command to create a trampoline at `http://localhost:65000//real_pac_path`
 
+    ```
 	node proxy-login-automator.js  -local_port 65000 -remote_host real_proxy_ip -remote_port 80 -usr usr1 -pwd password1 -as_pac_server true
+	```
+    **please specify large local port number because i use multiple local port sequentially like 65001, 65002, ....**
 
-Then you can set your browser's PAC url = http://localhost:65000/real_pac_path manually or close Chrome then run following command<br>
+- Then you can set your browser's PAC url = `http://localhost:65000/real_pac_path` manually or close Chrome then run following command
 
+    ```
 	path_of_Chrome --proxy-pac-url=http://localhost:65000/real_pac_path
+	```
 
 ----
 ##Usage of parameters:
+
+    ```
     -local_host host           listening address. Default: localhost. (* means all interfaces)
     -local_port port           listening port. Default: 8080
     -remote_host host          real proxy server address
@@ -32,4 +43,5 @@ Then you can set your browser's PAC url = http://localhost:65000/real_pac_path m
     -usr user                  proxy user id
     -pwd password              proxy user password
     -as_pac_server true or false   used as pac(proxy auto configuration) server. Default: no
-
+    ```
+Good luck
