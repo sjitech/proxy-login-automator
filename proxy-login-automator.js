@@ -167,16 +167,20 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
             }).on('end', function () {
                 var s = Buffer.concat(buf_ary).toString();
                 buf_ary = [];
-                s = s.replace(/PROXY\s+([^'":\s]+)(:\d+)?/g, function (matched_all, matched_remote_host, matched_comma_remote_port) {
-                    var _remote_port = matched_comma_remote_port && Number(matched_comma_remote_port.slice(1)) || 80;
-                    var remoteAddr = matched_remote_host + ':' + _remote_port;
+                s = s.replace(/PROXY\s+([^'":;\s]+):(\d+)/g, function (_, host, port) {
+                    var remoteAddr = host + ':' + port;
                     var _local_port = proxyAddrMap[remoteAddr];
                     if (!_local_port) {
                         _local_port = local_port + Object.keys(proxyAddrMap).length + 1;
                         proxyAddrMap[remoteAddr] = _local_port;
-                        createPortForwarder(local_host, _local_port, matched_remote_host, _remote_port, buf_proxy_basic_auth);
+                        createPortForwarder(local_host, _local_port, host, Number(port), buf_proxy_basic_auth);
                     }
-                    return 'PROXY localhost:' + _local_port;
+
+                    if (local_host === '*' || local_host === '0.0.0.0' || local_host === '::') {
+                        return 'PROXY localhost:' + _local_port;
+                    } else {
+                        return 'PROXY ' + local_host + ':' + _local_port;
+                    }
                 });
                 //console.log('return patched pac');
                 res.end(s);
