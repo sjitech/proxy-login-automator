@@ -167,7 +167,7 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
             }).on('end', function () {
                 var s = Buffer.concat(buf_ary).toString();
                 buf_ary = [];
-                s = s.replace(/PROXY\s+([^'":;\s]+):(\d+)/g, function (_, host, port) {
+                s = s.replace(/\bPROXY\s+([^'":;\s]+):(\d+)/g, function (_, host, port) {
                     var remoteAddr = host + ':' + port;
                     var _local_port = proxyAddrMap[remoteAddr];
                     if (!_local_port) {
