@@ -44,4 +44,12 @@ automatically send user/password to http proxy server so you do not need to inpu
 	path_of_Chrome --proxy-pac-url=http://localhost:65000/real_pac_path
 	```
 
+#Note
+On Windows 10, The Windows Store Apps maybe use "Isolated Network" settings which does not respect Internet Option of IE or control panel.
+
+Windows Store Apps may have its own network policy such as how to connect to internet.
+There are group policy Computer Configuration\Policies\Administrative Templates\Network\Network Isolation\Internet proxy servers for apps to serve these apps.
+
+See http://www.thewindowsclub.com/setup-proxy-metro-application-windows-8
+
 Good luck
