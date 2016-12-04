@@ -1,0 +1,19 @@
+{
+  "name": "proxy-login-automator",
+  "version": "1.0.0",
+  "description": "automatically send user/password to http proxy server so you do not need to input it manually.",
+  "bin": {"proxy-login-automator.js": "./proxy-login-automator.js"},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sjitech/proxy-login-automator.git"
+  },
+  "author": "osexp2000@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sjitech/proxy-login-automator/issues"
+  },
+  "homepage": "https://github.com/sjitech/proxy-login-automator#readme"
+}
