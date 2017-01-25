@@ -54,9 +54,11 @@ There are group policy Computer Configuration\Policies\Administrative Templates\
 
 See http://www.thewindowsclub.com/setup-proxy-metro-application-windows-8
 
-#Note on NTLM authentication or other authentication
+#Note for other authentication(such as NTLM)
 
-This tool currently only support HTTP basic authentication. If you want to use other authentication such as NTLM,
+This tool currently only support HTTP basic authentication between local proxy server and real proxy server. 
+
+If you want to use other authentication such as NTLM,
 you can use other tool such as [NGINX reverse proxy to NTLM authenticated http server](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#ntlm)
 
 Good luck
