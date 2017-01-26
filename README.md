@@ -30,12 +30,26 @@ automatically send user/password to http proxy server so you do not need to inpu
     ```
 
 ##Example2: PAC(proxy auto configuration) server
-- You have a pac server serving at `http://real_proxy_ip:80/real_pac_path`
+- You have a pac server serving at `http://real_proxy_ip:8080/real_pac_path`
+
+  The real_pac_path point to a PAC file which contains instruction says
+  ```
+  /*on some condition ...*/ return "PROXY proxy1:port1"
+  /*on other condition...*/ return "PROXY proxy2:port2" 
+  /*on other condition...*/ return "DIRECT" 
+  ```
+  means use child proxy servers, assume they require same password.
+  
 - You run following command to create a trampoline at `http://localhost:65000//real_pac_path`
 
     ```
-	node proxy-login-automator.js  -local_port 65000 -remote_host real_proxy_ip -remote_port 80 -usr usr1 -pwd password1 -as_pac_server true
+	node proxy-login-automator.js  -local_port 65000 -remote_host real_proxy_ip -remote_port 8080 -usr usr1 -pwd password1 -as_pac_server true
 	```
+
+    - This tool dynamically create multiple child proxy servers which auto inject authentication header.
+    
+    - The child proxy servers will listen at `localhost:65001`, `localhost:65002` for proxy1:port1, proxy2:port2 ... respectively.
+  
     **please specify large local port number because i use multiple local port sequentially like 65001, 65002, ....**
 
 - Then you can set your browser's PAC url = `http://localhost:65000/real_pac_path` manually or close Chrome then run following command
