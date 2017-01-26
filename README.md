@@ -1,7 +1,15 @@
 # proxy-password-automator
-automatically send user/password to http proxy server so you do not need to input it manually.
+Automatically send user/password to http proxy server so you do not need to input password manually.
 
-- please install node.js first.
+HTTPS is also supported if the real proxy server already supports it(HTTP CONNECT), 
+**Anyway, browser still use HTTP to talk to proxy server due to historical reason.**
+
+[PAC](https://en.wikipedia.org/wiki/Proxy_auto-config) is also supported, child proxy servers 
+(defined in PAC) which require user/password will also be automated. 
+
+- Please install node.js first.
+ 
+- Download & cd this project dir, run `node proxy-login-automator.js ...`
 
 - Usage of parameters:
 
@@ -15,8 +23,11 @@ automatically send user/password to http proxy server so you do not need to inpu
     -as_pac_server true or false   used as pac(proxy auto configuration) server. Default: no
     ```
 
-##Example1: Normal http/https proxy server
-- You have a proxy server `real_proxy_ip:8080`
+##Example1: Normal proxy server
+- You have a proxy server `http://real_proxy_ip:8080`
+
+    This server requires a user/password.
+
 - You run following command to create a local trampoline at `localhost:8081`
 
     ```
@@ -32,13 +43,18 @@ automatically send user/password to http proxy server so you do not need to inpu
 ##Example2: PAC(proxy auto configuration) server
 - You have a pac server serving at `http://real_proxy_ip:8080/real_pac_path`
 
-  The real_pac_path point to a PAC file which contains instruction says
-  ```
-  /*on some condition ...*/ return "PROXY proxy1:port1"
-  /*on other condition...*/ return "PROXY proxy2:port2" 
-  /*on other condition...*/ return "DIRECT" 
-  ```
-  means use child proxy servers, assume they require same password.
+    This server may require a user/password or not, it does not matter.
+
+    The real_pac_path points to a [PAC file](https://en.wikipedia.org/wiki/Proxy_auto-config)
+    which contains instructions says
+    ```
+    /*on some condition ...*/ return "PROXY proxy1:port1"
+    /*on another condition...*/ return "PROXY proxy2:port2" 
+    /*on other condition...*/ return "DIRECT" 
+    ```
+    means use child proxy servers.
+     
+    **Assume all user/password are same**.
   
 - You run following command to create a trampoline at `http://localhost:65000//real_pac_path`
 
@@ -50,15 +66,13 @@ automatically send user/password to http proxy server so you do not need to inpu
     
     - The child proxy servers will listen at `localhost:65001`, `localhost:65002` for proxy1:port1, proxy2:port2 ... respectively.
   
-    **please specify large local port number because i use multiple local port sequentially like 65001, 65002, ....**
+    **Please specify large local port number because i use multiple local port sequentially like 65001, 65002, ....**
 
 - Then you can set your browser's PAC url = `http://localhost:65000/real_pac_path` manually or close Chrome then run following command
 
     ```
 	path_of_Chrome --proxy-pac-url=http://localhost:65000/real_pac_path
 	```
-
-Note: The user/password are both for the local PAC server and child proxy servers.
 
 #Note for Windows 10 "Windows Store Apps"
 On Windows 10, The Windows Store Apps (such as pre-installed Weather, Calender) maybe use "Isolated Network" settings which does not respect Internet Option of IE or control panel.
