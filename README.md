@@ -1,17 +1,22 @@
 # proxy-password-automator
-Automatically send user/password to http proxy server so you do not need to input password manually.
+Automatically inject user/password to proxy server(HTTP/HTTPS), so you do not need to input password manually.
 
-HTTPS is also supported if the real proxy server already supports it(HTTP CONNECT), 
-**Anyway, browser still use HTTP to talk to proxy server due to historical reason.**
+This is done by create a local proxy server as trampoline to real proxy server.
+You need change your proxy config to use the local proxy server.
 
-[PAC](https://en.wikipedia.org/wiki/Proxy_auto-config) is also supported, child proxy servers 
-(defined in PAC) which require user/password will also be automated. 
+[PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) is also supported. Child proxy servers 
+(defined in PAC) which require user/password will also be automated by dynamically created trampolines. 
+
+## Usage
 
 - Please install node.js first.
  
-- Download & cd this project dir, run `node proxy-login-automator.js ...`
+- Download & cd this project dir, run `node proxy-login-automator.js ...`. 
 
-- Usage of parameters:
+  For Linux/Mac users, you can install it by `npm install -g proxy-login-automator` 
+  then run `proxy-login-automator.js` directly. 
+
+- Parameters of `proxy-login-automator.js`:
 
     ```
     -local_host host           listening address. Default: localhost. (* means all interfaces)
@@ -23,7 +28,8 @@ HTTPS is also supported if the real proxy server already supports it(HTTP CONNEC
     -as_pac_server true or false   used as pac(proxy auto configuration) server. Default: no
     ```
 
-##Example1: Normal proxy server
+##Example1: normal Proxy Server
+
 - You have a proxy server `http://real_proxy_ip:8080`
 
     This server requires a user/password.
@@ -40,7 +46,8 @@ HTTPS is also supported if the real proxy server already supports it(HTTP CONNEC
     path_of_Chrome --proxy-server=http://localhost:8081
     ```
 
-##Example2: PAC(proxy auto configuration) server
+##Example2: [PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) Server
+
 - You have a pac server serving at `http://real_proxy_ip:8080/real_pac_path`
 
     This server may require a user/password or not, it does not matter.
@@ -62,11 +69,11 @@ HTTPS is also supported if the real proxy server already supports it(HTTP CONNEC
 	node proxy-login-automator.js  -local_port 65000 -remote_host real_proxy_ip -remote_port 8080 -usr usr1 -pwd password1 -as_pac_server true
 	```
 
-    - This tool dynamically create multiple child proxy servers which auto inject authentication header.
+    - This tool dynamically creates multiple child proxy servers which auto inject user/password when talking to real proxy servers.
     
     - The child proxy servers will listen at `localhost:65001`, `localhost:65002` for proxy1:port1, proxy2:port2 ... respectively.
   
-    **Please specify large local port number because i use multiple local port sequentially like 65001, 65002, ....**
+    **Please specify large local port number because i use multiple local port incrementally like 65001, 65002, ....**
 
 - Then you can set your browser's PAC url = `http://localhost:65000/real_pac_path` manually or close Chrome then run following command
 
@@ -74,7 +81,8 @@ HTTPS is also supported if the real proxy server already supports it(HTTP CONNEC
 	path_of_Chrome --proxy-pac-url=http://localhost:65000/real_pac_path
 	```
 
-#Note for Windows 10 "Windows Store Apps"
+##Note for Windows 10 "Windows Store Apps"
+
 On Windows 10, The Windows Store Apps (such as pre-installed Weather, Calender) maybe use "Isolated Network" settings which does not respect Internet Option of IE or control panel.
 
 Windows Store Apps may have its own network policy such as how to connect to internet.
@@ -82,11 +90,25 @@ There are group policy Computer Configuration\Policies\Administrative Templates\
 
 See http://www.thewindowsclub.com/setup-proxy-metro-application-windows-8
 
-#Note for other authentication(such as NTLM)
+##Note for other authentication(such as NTLM)
 
 This tool currently only support HTTP basic authentication between local proxy server and real proxy server. 
 
 If you want to use other authentication such as NTLM,
 you can use other tool such as [NGINX reverse proxy to NTLM authenticated http server](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#ntlm)
+
+##Note for HTTPS 
+
+Proxy Server normally supports HTTPS browsing(by [handling HTTP CONNECT request](https://en.wikipedia.org/wiki/HTTP_tunnel)),
+so this tool also support HTTPS browsing of course.
+
+As above link described, even serving for HTTPS browsing, **when talk to proxy server, 
+browsers are still using HTTP** to send the `HTTP CONNECT` request, 
+where the user/password will also be injected.
+This seems mainly due to historical reason. 
+
+Currently only Chrome support HTTPS talking. 
+
+So this tool only use HTTP to talk to proxy server.
 
 Good luck
