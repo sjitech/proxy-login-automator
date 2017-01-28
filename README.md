@@ -1,4 +1,4 @@
-# proxy-password-automator
+# proxy-login-automator
 Automatically inject user/password to proxy server(HTTP/HTTPS), so you do not need to input password manually.
 
 This is done by create a local proxy server as trampoline to real proxy server.
@@ -95,7 +95,7 @@ See http://www.thewindowsclub.com/setup-proxy-metro-application-windows-8
 This tool currently only support HTTP basic authentication between local proxy server and real proxy server. 
 
 If you want to use other authentication such as NTLM,
-you can use other tool such as [NGINX reverse proxy to NTLM authenticated http server](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#ntlm)
+you can use other tool such as [NGINX reverse proxy to NTLM authenticated http server](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#ntlm).
 
 ##Note for HTTPS 
 
@@ -110,5 +110,7 @@ This seems mainly due to historical reason.
 Currently only Chrome support HTTPS talking. 
 
 So this tool only use HTTP to talk to proxy server.
+
+**You can use NGINX to redirect HTTP to other HTTPS server**.
 
 Good luck
