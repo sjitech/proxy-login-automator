@@ -14,6 +14,8 @@ function main() {
   cfg.local_host = cfg.local_host || cfg.host;
   cfg.local_port = Number(cfg.local_port || cfg.port);
   cfg.remote_port = Number(cfg.remote_port);
+  cfg.usr = cfg.usr || cfg.user || '';
+  cfg.pwd = cfg.pwd || cfg.password || '';
   cfg.as_pac_server = cfg.as_pac_server === 'true';
   cfg.is_remote_https = cfg.is_remote_https === 'true';
   cfg.chk_remote_cert = cfg.chk_remote_cert !== 'false';
@@ -50,16 +52,28 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
   net.createServer({allowHalfOpen: true}, function (socket) {
     var realCon = (is_remote_https ? tls : net).connect({
       port: remote_port, host: remote_host, allowHalfOpen: true,
-      rejectUnauthorized: chk_remote_cert
+      rejectUnauthorized: chk_remote_cert /*not used when is_remote_https false*/
     });
     realCon.on('data', function (buf) {
       //console.log('<<<<' + (Date.t=new Date()) + '.' + Date.t.getMilliseconds() + '\n' + buf.toString('ascii'));
       socket.write(buf);
+      realCon.__haveGotData = true;
     }).on('end', function () {
       socket.end();
+      if (!realCon.__haveGotData && !realCon.__haveShownError) {
+        console.log('[Local proxy server(:' + local_port + ')][Connection to ' + remote_host + ':' + remote_port + '] Error: ended by remote peer');
+        realCon.__haveShownError = true;
+      }
     }).on('close', function () {
       socket.end();
-    }).on('error', dummy);
+      if (!realCon.__haveGotData && !realCon.__haveShownError) {
+        console.log('[Local proxy server(:' + local_port + ')][Connection to ' + remote_host + ':' + remote_port + '] Error: reset by remote peer');
+        realCon.__haveShownError = true;
+      }
+    }).on('error', function (err) {
+      console.log('[Local proxy server(:' + local_port + ')][Connection to ' + remote_host + ':' + remote_port + '] ' + err);
+      realCon.__haveShownError = true;
+    });
 
     var parser = new HTTPParser(HTTPParser.REQUEST);
     parser[HTTPParser.kOnHeadersComplete] = function () {
@@ -135,7 +149,9 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
       buf = Buffer.concat(buf_ary);
       realCon.write(buf);
 
-    }).on('end', cleanup).on('close', cleanup).on('error', dummy);
+    }).on('end', cleanup).on('close', cleanup).on('error', function (err) {
+      console.log('[Local proxy server(:' + local_port + ')][Incoming connection] ' + err);
+    });
 
     function cleanup() {
       if (parser) {
@@ -145,10 +161,10 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
       realCon.end();
     }
   }).on('error', function (err) {
-    console.log('Failed to listen at ' + local_host + ':' + local_port + '\n' + err);
+    console.log('[Local proxy server(:' + local_port + ')] Failed to listen at ' + local_host + ':' + local_port + '\n' + err);
     process.exit(1);
   }).listen(local_port, local_host === '*' ? undefined : local_host, function () {
-    console.log('OK: forward ' + local_host + ':' + local_port + ' to ' + remote_host + ':' + remote_port);
+    console.log('[Local proxy server(:' + local_port + ')] OK: forward ' + local_host + ':' + local_port + ' to ' + remote_host + ':' + remote_port);
   });
 }
 
@@ -161,11 +177,15 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
 
     internal_req.host = remote_host;
     internal_req.port = remote_port;
+    if (req.headers['host']) { //to avoid certificate verification error
+      req.headers['host'] = remote_host + ( req.headers['host'].indexOf(':') >= 0 ? (':' + remote_port) : '');
+    }
+    if (!req.headers['proxy-authorization']) {
+      req.headers['proxy-authorization'] = buf_proxy_basic_auth.slice('Proxy-Authorization: '.length);
+    }
     internal_req.headers = req.headers;
     internal_req.keepAlive = req.headers['connection'] === 'keep-alive';
-    internal_req.headers['host'] = remote_host + ':' + remote_port; //to avoid certificate verification error
-    internal_req.rejectUnauthorized = chk_remote_cert;
-    internal_req.headers['proxy-authorization'] = buf_proxy_basic_auth.slice('Proxy-Authorization: '.length);
+    internal_req.rejectUnauthorized = chk_remote_cert; //only used for SSL
 
     (is_remote_https ? https : http).get(internal_req, function (internal_res) {
 
@@ -173,6 +193,7 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
       delete internal_res.headers['transfer-encoding'];
 
       res.writeHead(internal_res.statusCode, internal_res.headers);
+      res.__haveWrittenData = true;
 
       var buf_ary = [];
       internal_res.on('data', function (buf) {
@@ -193,18 +214,26 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
         });
         //console.log('return patched pac');
         res.end(s);
-      }).on('error', dummy);
+      }).on('error', function (err) {
+        res.end();
+        console.log('[Local PAC server][Reading response from ' + remote_host + ':' + remote_port + '] ' + err);
+      });
+    }).on('error', function (err) {
+      if (!res.__haveWrittenData) {
+        res.statusCode = 500;
+        res.end();
+      }
+      console.log('[Local PAC server][Connection to ' + remote_host + ':' + remote_port + '] ' + err);
     });
-    res.on('error', dummy);
+    res.on('error', function (err) {
+      console.log('[Local PAC server][Writing response] ' + err);
+    });
   }).on('error', function (err) {
-    console.log('Failed to listen at ' + local_host + ':' + local_port + '\n' + err);
+    console.log('[Local PAC server] Failed to listen at ' + local_host + ':' + local_port + '\n' + err);
     process.exit(1);
   }).listen(local_port, local_host === '*' ? undefined : local_host, function () {
-    console.log('OK: listen at ' + local_host + ':' + local_port);
+    console.log('[Local PAC server] OK: listen at ' + local_host + ':' + local_port);
   });
-}
-
-function dummy() {
 }
 
 main();

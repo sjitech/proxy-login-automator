@@ -1,6 +1,6 @@
 {
   "name": "proxy-login-automator",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "automatically send user/password to http proxy server so you do not need to input it manually.",
   "bin": {"proxy-login-automator.js": "./proxy-login-automator.js"},
   "scripts": {
