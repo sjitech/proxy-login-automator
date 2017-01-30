@@ -85,31 +85,30 @@ which forward requests to real proxy with password injected.
 	path_of_Chrome --proxy-pac-url=http://localhost:65000/REAL_PAC_PATH
 	```
 
-##Note for Windows 10 "Windows Store Apps"
+##Note for "Windows Store Apps"
 
-On Windows 10, The Windows Store Apps (such as pre-installed Weather, Calender) maybe use "Isolated Network" settings which does not respect Internet Option of IE or control panel.
+The Windows Store Apps (such as pre-installed Weather, Calender) maybe use "Isolated Network" settings which does not respect Internet Option of IE or control panel.
 
 Windows Store Apps may have its own network policy such as how to connect to internet.
 There are group policy Computer Configuration\Policies\Administrative Templates\Network\Network Isolation\Internet proxy servers for apps to serve these apps.
 
+To change proxy of "Windows Store Apps"
 See http://www.thewindowsclub.com/setup-proxy-metro-application-windows-8
 
 ##Note for other authentication(such as NTLM)
 
-This tool currently only support HTTP basic authentication between local proxy server and real proxy server. 
+This tool currently only support HTTP basic authentication to real proxy server. 
 
 If you want to use other authentication such as NTLM,
 you can use other tool such as [NGINX reverse proxy to NTLM authenticated http server](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#ntlm).
 
 ##Note for HTTPS 
 
-Proxy Server normally supports HTTPS browsing(by [handling HTTP CONNECT request](https://en.wikipedia.org/wiki/HTTP_tunnel)),
-so this tool also support HTTPS browsing of course.
+Proxy Server normally supports HTTPS browsing by [handling HTTP tunnel request](https://en.wikipedia.org/wiki/HTTP_tunnel),
+so this tool also support HTTPS browsing of course if the real proxy server does.
 
-As above link described, even serving for HTTPS browsing, **when talk to proxy server, 
-browsers are still using HTTP** to send the `HTTP CONNECT` request, 
-where the user/password will also be injected.
-This seems mainly due to historical reason. 
+However, due to historical reason, **most browsers always use HTTP to talk to proxy server
+even when browsing HTTPS sites**(done by HTTP tunnel described in above link). 
 
 Currently only Chrome support HTTPS talking. 
 
