@@ -114,7 +114,15 @@ Currently only Chrome support HTTPS talking.
 
 So this tool only use HTTP to talk to real proxy server. **You can use NGINX to redirect HTTP to other HTTPS server**.
 
-###2017/01/30: now support talk to real proxy server with HTTPS by specify `-is_remote_https true`. in this case, to avoid SSL certificate verification error, you can specify `-chk_remote_cert false` 
+###2017/01/30: now support talk to real proxy server with HTTPS by specify following parameters:
+
+```
+-is_remote_https true
+```
+in addition, to avoid SSL certificate verification error, you can specify
+```
+-chk_remote_cert false
+``` 
 
 Note: anyway, the local proxy server is always served as a HTTP server. 
 

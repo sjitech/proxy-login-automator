@@ -33,7 +33,7 @@ function main() {
   if (cfg.as_pac_server && (cfg.local_host === '*' || cfg.local_host === '0.0.0.0' || cfg.local_host === '::')) {
     return console.error('when use as a PAC server, the local_host parameter must be a definite address');
   }
-  console.error('Using parameters: ' + JSON.stringify(cfg, null, '  '));
+  console.log('Using parameters: ' + JSON.stringify(cfg, null, '  '));
   cfg.buf_proxy_basic_auth = new Buffer('Proxy-Authorization: Basic ' + new Buffer(cfg.usr + ':' + cfg.pwd).toString('base64'));
 
   if (cfg.as_pac_server) {
@@ -59,17 +59,17 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
     }).on('end', function () {
       socket.end();
       if (!realCon.__haveGotData && !realCon.__haveShownError) {
-        console.log('[Local proxy server(:' + local_port + ')][Connection to ' + remote_host + ':' + remote_port + '] Error: ended by remote peer');
+        console.error('[LocalProxySrv(:' + local_port + ')][Connection to ' + remote_host + ':' + remote_port + '] Error: ended by remote peer');
         realCon.__haveShownError = true;
       }
     }).on('close', function () {
       socket.end();
       if (!realCon.__haveGotData && !realCon.__haveShownError) {
-        console.log('[Local proxy server(:' + local_port + ')][Connection to ' + remote_host + ':' + remote_port + '] Error: reset by remote peer');
+        console.error('[LocalProxySrv(:' + local_port + ')][Connection to ' + remote_host + ':' + remote_port + '] Error: reset by remote peer');
         realCon.__haveShownError = true;
       }
     }).on('error', function (err) {
-      console.log('[Local proxy server(:' + local_port + ')][Connection to ' + remote_host + ':' + remote_port + '] ' + err);
+      console.error('[LocalProxySrv(:' + local_port + ')][Connection to ' + remote_host + ':' + remote_port + '] ' + err);
       realCon.__haveShownError = true;
     });
 
@@ -148,7 +148,7 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
       realCon.write(buf);
 
     }).on('end', cleanup).on('close', cleanup).on('error', function (err) {
-      console.log('[Local proxy server(:' + local_port + ')][Incoming connection] ' + err);
+      console.error('[LocalProxySrv(:' + local_port + ')][Incoming connection] ' + err);
     });
 
     function cleanup() {
@@ -159,10 +159,10 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
       realCon.end();
     }
   }).on('error', function (err) {
-    console.log('[Local proxy server(:' + local_port + ')] Failed to listen at ' + local_host + ':' + local_port + '\n' + err);
+    console.error('[LocalProxySrv(:' + local_port + ')] ' + err);
     process.exit(1);
   }).listen(local_port, local_host === '*' ? undefined : local_host, function () {
-    console.log('[Local proxy server(:' + local_port + ')] OK: forward ' + local_host + ':' + local_port + ' to ' + remote_host + ':' + remote_port);
+    console.log('[LocalProxySrv(:' + local_port + ')] OK: forward http://' + local_host + ':' + local_port + ' to ' + ' to http' + (is_remote_https ? 's' : '') + '://' + remote_host + ':' + remote_port);
   });
 }
 
@@ -214,23 +214,23 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
         res.end(s);
       }).on('error', function (err) {
         res.end();
-        console.log('[Local PAC server][Reading response from ' + remote_host + ':' + remote_port + '] ' + err);
+        console.error('[LocalPACSrv][Reading response from ' + remote_host + ':' + remote_port + '] ' + err);
       });
     }).on('error', function (err) {
       if (!res.__haveWrittenData) {
         res.statusCode = 500;
         res.end();
       }
-      console.log('[Local PAC server][Connection to ' + remote_host + ':' + remote_port + '] ' + err);
+      console.error('[LocalPACSrv][Connection to ' + remote_host + ':' + remote_port + '] ' + err);
     });
     res.on('error', function (err) {
-      console.log('[Local PAC server][Writing response] ' + err);
+      console.error('[LocalPACSrv][Writing response] ' + err);
     });
   }).on('error', function (err) {
-    console.log('[Local PAC server] Failed to listen at ' + local_host + ':' + local_port + '\n' + err);
+    console.error('[LocalPACSrv] ' + err);
     process.exit(1);
   }).listen(local_port, local_host === '*' ? undefined : local_host, function () {
-    console.log('[Local PAC server] OK: listen at ' + local_host + ':' + local_port);
+    console.log('[LocalPACSrv] OK: forward http://' + local_host + ':' + local_port + ' to http' + (is_remote_https ? 's' : '') + '://' + remote_host + ':' + remote_port);
   });
 }
 
