@@ -165,6 +165,7 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
     internal_req.keepAlive = req.headers['connection'] === 'keep-alive';
     internal_req.headers['host'] = remote_host + ':' + remote_port; //to avoid certificate verification error
     internal_req.rejectUnauthorized = chk_remote_cert;
+    internal_req.headers['proxy-authorization'] = buf_proxy_basic_auth.slice('Proxy-Authorization: '.length);
 
     (is_remote_https ? https : http).get(internal_req, function (internal_res) {
 

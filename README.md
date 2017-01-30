@@ -36,14 +36,14 @@ which forward requests to real proxy with password injected.
 
 ##Example1: normal Proxy Server
 
-- You have a proxy server `http://real_proxy_ip:8080`
+- You have a proxy server `http://REAL_PROXY_IP:8080`
 
     This server requires a user/password.
 
 - You run following command to create a local trampoline at `localhost:8081`
 
     ```
-    node proxy-login-automator.js  -local_port 8081 -remote_host real_proxy_ip -remote_port 8080 -usr user1 -pwd password1
+    node proxy-login-automator.js -local_port 8081 -remote_host REAL_PROXY_IP -remote_port 8080 -usr USER -pwd PASSWORD
     ```
 
 - Then you can set your browser's proxy ip:port = `localhost:8081` manually or close Chrome then run following command
@@ -54,25 +54,25 @@ which forward requests to real proxy with password injected.
 
 ##Example2: [PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) Server
 
-- You have a pac server serving at `http://real_proxy_ip:8080/real_pac_path`
+- You have a pac server serving at `http://REAL_PROXY_IP:8080/REAL_PAC_PATH`
 
     This server may require a user/password or not, it does not matter.
 
-    The real_pac_path points to a [PAC file](https://en.wikipedia.org/wiki/Proxy_auto-config)
+    The REAL_PAC_PATH points to a [PAC file](https://en.wikipedia.org/wiki/Proxy_auto-config)
     which contains instructions says
     ```
     /*on some condition ...*/ return "PROXY proxy1:port1"
     /*on another condition...*/ return "PROXY proxy2:port2" 
     /*on other condition...*/ return "DIRECT" 
     ```
-    means use child proxy servers.
+    means use child proxy servers proxy1:port1 and proxy2:port2.
      
     **Assume all user/password are same**.
   
-- You run following command to create a trampoline at `http://localhost:65000//real_pac_path`
+- You run following command to create a trampoline at `http://localhost:65000//REAL_PAC_PATH`
 
     ```
-	node proxy-login-automator.js  -local_port 65000 -remote_host real_proxy_ip -remote_port 8080 -usr usr1 -pwd password1 -as_pac_server true
+	node proxy-login-automator.js -local_port 65000 -remote_host REAL_PROXY_IP -remote_port 8080 -usr USER -pwd PASSWORD -as_pac_server true
 	```
 
     - This tool dynamically creates multiple child proxy servers which auto inject user/password when talking to real proxy servers.
@@ -81,10 +81,10 @@ which forward requests to real proxy with password injected.
   
     **Please specify large local port number because i use multiple local port incrementally like 65001, 65002, ....**
 
-- Then you can set your browser's PAC url = `http://localhost:65000/real_pac_path` manually or close Chrome then run following command
+- Then you can set your browser's PAC url = `http://localhost:65000/REAL_PAC_PATH` manually or close Chrome then run following command
 
     ```
-	path_of_Chrome --proxy-pac-url=http://localhost:65000/real_pac_path
+	path_of_Chrome --proxy-pac-url=http://localhost:65000/REAL_PAC_PATH
 	```
 
 ##Note for Windows 10 "Windows Store Apps"
