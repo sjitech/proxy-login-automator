@@ -1,11 +1,15 @@
 # proxy-login-automator
-Automatically inject user/password to proxy server(HTTP/HTTPS), so you do not need to input password manually.
+A local proxy which forward requests to real proxy with password injected, even for proxies defined inside PAC.
 
-This is done by create a local proxy server as trampoline to real proxy server.
-You need change your proxy config to use the local proxy server.
+- The proxy means proxy server for HTTP/HTTPS browsing.
 
-[PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) is also supported. Child proxy servers 
-(defined in PAC) which require user/password will also be automated by dynamically created trampolines. 
+- This is done by create a local proxy server as a trampoline to real proxy server.
+You change your browser's proxy config to use the local proxy server so that you can browse internt 
+without being asked for user/password.
+
+- Can act as a [PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) server if real proxy provides PAC. 
+In this case, each real proxy server defined in PAC will be dynamically replaced with a local proxy
+which forward requests to real proxy with password injected.
 
 ## Usage
 
@@ -19,13 +23,15 @@ You need change your proxy config to use the local proxy server.
 - Parameters of `proxy-login-automator.js`:
 
     ```
-    -local_host host           listening address. Default: localhost. (* means all interfaces)
-    -local_port port           listening port. Default: 8080
-    -remote_host host          real proxy server address
-    -remote_port port          real proxy server port. Default: 8080
-    -usr user                  proxy user id
-    -pwd password              proxy user password
-    -as_pac_server true or false   used as pac(proxy auto configuration) server. Default: no
+    -local_host host        listening address. Default: localhost. (* means all interfaces)
+    -local_port port        listening port. Default: 8080
+    -remote_host host       real proxy server address
+    -remote_port port       real proxy server port. Default: 8080
+    -usr user       proxy user id
+    -pwd password   proxy user password
+    -as_pac_server true/false       used as pac(proxy auto configuration) server. Default: false
+    -is_remote_https true/false     talk to real proxy server with HTTPS. Default: false
+    -chk_remote_cert true/false     check real proxy server SSL certificate. Default: true
     ```
 
 ##Example1: normal Proxy Server
@@ -109,8 +115,10 @@ This seems mainly due to historical reason.
 
 Currently only Chrome support HTTPS talking. 
 
-So this tool only use HTTP to talk to proxy server.
+So this tool only use HTTP to talk to real proxy server. **You can use NGINX to redirect HTTP to other HTTPS server**.
 
-**You can use NGINX to redirect HTTP to other HTTPS server**.
+###2017/01/30: now support talk to real proxy server with HTTPS by specify `-is_remote_https true`. in this case, to avoid SSL certificate verification error, you can specify `-chk_remote_cert false` 
+
+Note: anyway, the local proxy server is always served as a HTTP server. 
 
 Good luck

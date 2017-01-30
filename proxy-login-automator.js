@@ -1,46 +1,57 @@
+#!/usr/bin/env node
 'use strict';
-var net = require('net');
+var net = require('net'), tls = require('tls');
 var HTTPParser = process.binding('http_parser').HTTPParser;
-var http = require('http');
+var http = require('http'), https = require('https');
 var url = require('url');
 
 function main() {
-  //convert `--key value` to cfg[key]=value
+  //convert `-key value` to cfg[key]=value
   var cfg = process.argv.slice(2/*skip ["node", "xxx.js"]*/).reduce(function (cfg, arg, i, argv) {
-    i % 2 === 0 && (arg.slice(0, 2) === '--' && (cfg[arg.slice(2)] = argv[i + 1]) || arg.slice(0, 1) === '-' && (cfg[arg.slice(1)] = argv[i + 1]));
+    i % 2 === 0 && (arg.slice(0, 1) === '-' && (cfg[arg.slice(1)] = argv[i + 1]));
     return cfg;
-  }, /*init cfg:*/ {local_host: 'localhost', local_port: 8080, remote_host: 8080});
+  }, /*init cfg:*/ {local_host: 'localhost', local_port: 8080, remote_host: 8080, remote_port: 8080});
   cfg.local_host = cfg.local_host || cfg.host;
   cfg.local_port = Number(cfg.local_port || cfg.port);
   cfg.remote_port = Number(cfg.remote_port);
   cfg.as_pac_server = cfg.as_pac_server === 'true';
+  cfg.is_remote_https = cfg.is_remote_https === 'true';
+  cfg.chk_remote_cert = cfg.chk_remote_cert !== 'false';
 
-  if (!cfg.local_host || !cfg.local_port || !cfg.remote_host || !cfg.usr || !cfg.pwd)
+  if (!cfg.local_host || !cfg.local_port || !cfg.remote_host || !cfg.remote_port || !cfg.usr || !cfg.pwd)
     return console.error('Usage of parameters:\n'
-      + '\t-local_host host\t\t' + 'listening address. Default: localhost. (* means all interfaces)\n'
-      + '\t-local_port port\t\t' + 'listening port. Default: 8080\n'
-      + '\t-remote_host host\t\t' + 'real proxy server address\n'
-      + '\t-remote_port port\t\t' + 'real proxy server port. Default: 8080\n'
-      + '\t-usr user\t\t' + 'proxy user id\n'
-      + '\t-pwd password\t\t' + 'proxy user password\n'
-      + '\t-as_pac_server true or false \t\t' + 'used as pac(proxy auto configuration) server. Default: no\n'
+      + '-local_host host\t' + 'listening address. Default: localhost. (* means all interfaces)\n'
+      + '-local_port port\t' + 'listening port. Default: 8080\n'
+      + '-remote_host host\t' + 'real proxy server address\n'
+      + '-remote_port port\t' + 'real proxy server port. Default: 8080\n'
+      + '-usr user\t' + 'proxy user id\n'
+      + '-pwd password\t' + 'proxy user password\n'
+      + '-as_pac_server true/false \t' + 'used as pac(proxy auto configuration) server. Default: false\n'
+      + '-is_remote_https true/false \t' + 'talk to real proxy server with HTTPS. Default: false\n'
+      + '-chk_remote_cert true/false \t' + 'check real proxy server SSL certificate. Default: true\n'
     );
-  console.error('Using parameters:\n' + JSON.stringify(cfg, null, '  '));
+  if (cfg.as_pac_server && (cfg.local_host === '*' || cfg.local_host === '0.0.0.0' || cfg.local_host === '::')) {
+    return console.error('when use as a PAC server, the local_host parameter must be a definite address');
+  }
+  console.error('Using parameters: ' + JSON.stringify(cfg, null, '  '));
   cfg.buf_proxy_basic_auth = new Buffer('Proxy-Authorization: Basic ' + new Buffer(cfg.usr + ':' + cfg.pwd).toString('base64'));
 
   if (cfg.as_pac_server) {
-    createPacServer(cfg.local_host, cfg.local_port, cfg.remote_host, cfg.remote_port, cfg.buf_proxy_basic_auth);
+    createPacServer(cfg.local_host, cfg.local_port, cfg.remote_host, cfg.remote_port, cfg.buf_proxy_basic_auth, cfg.is_remote_https, cfg.chk_remote_cert);
   } else {
-    createPortForwarder(cfg.local_host, cfg.local_port, cfg.remote_host, cfg.remote_port, cfg.buf_proxy_basic_auth);
+    createPortForwarder(cfg.local_host, cfg.local_port, cfg.remote_host, cfg.remote_port, cfg.buf_proxy_basic_auth, cfg.is_remote_https, cfg.chk_remote_cert);
   }
 }
 
 var CR = 0xd, LF = 0xa, BUF_CR = new Buffer([0xd]), BUF_CR_LF_CR_LF = new Buffer([0xd, 0xa, 0xd, 0xa]), BUF_LF_LF = new Buffer([0xa, 0xa]);
 var STATE_NONE = 0, STATE_FOUND_LF = 1, STATE_FOUND_LF_CR = 2;
 
-function createPortForwarder(local_host, local_port, remote_host, remote_port, buf_proxy_basic_auth) {
+function createPortForwarder(local_host, local_port, remote_host, remote_port, buf_proxy_basic_auth, is_remote_https, chk_remote_cert) {
   net.createServer({allowHalfOpen: true}, function (socket) {
-    var realCon = net.connect({port: remote_port, host: remote_host, allowHalfOpen: true});
+    var realCon = (is_remote_https ? tls : net).connect({
+      port: remote_port, host: remote_host, allowHalfOpen: true,
+      rejectUnauthorized: chk_remote_cert
+    });
     realCon.on('data', function (buf) {
       //console.log('<<<<' + (Date.t=new Date()) + '.' + Date.t.getMilliseconds() + '\n' + buf.toString('ascii'));
       socket.write(buf);
@@ -143,7 +154,7 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
 
 var proxyAddrMap = {};
 
-function createPacServer(local_host, local_port, remote_host, remote_port, buf_proxy_basic_auth) {
+function createPacServer(local_host, local_port, remote_host, remote_port, buf_proxy_basic_auth, is_remote_https, chk_remote_cert) {
   http.createServer(function (req, res) {
 
     var internal_req = url.parse(req.url);
@@ -152,8 +163,10 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
     internal_req.port = remote_port;
     internal_req.headers = req.headers;
     internal_req.keepAlive = req.headers['connection'] === 'keep-alive';
+    internal_req.headers['host'] = remote_host + ':' + remote_port; //to avoid certificate verification error
+    internal_req.rejectUnauthorized = chk_remote_cert;
 
-    http.get(internal_req, function (internal_res) {
+    (is_remote_https ? https : http).get(internal_req, function (internal_res) {
 
       delete internal_res.headers['content-length'];
       delete internal_res.headers['transfer-encoding'];
@@ -173,14 +186,9 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
           if (!_local_port) {
             _local_port = local_port + Object.keys(proxyAddrMap).length + 1;
             proxyAddrMap[remoteAddr] = _local_port;
-            createPortForwarder(local_host, _local_port, host, Number(port), buf_proxy_basic_auth);
+            createPortForwarder(local_host, _local_port, host, Number(port), buf_proxy_basic_auth, is_remote_https, chk_remote_cert);
           }
-
-          if (local_host === '*' || local_host === '0.0.0.0' || local_host === '::') {
-            return 'PROXY localhost:' + _local_port;
-          } else {
-            return 'PROXY ' + local_host + ':' + _local_port;
-          }
+          return 'PROXY ' + local_host + ':' + _local_port;
         });
         //console.log('return patched pac');
         res.end(s);
