@@ -10,12 +10,10 @@ function main() {
   var cfg = process.argv.slice(2/*skip ["node", "xxx.js"]*/).reduce(function (cfg, arg, i, argv) {
     i % 2 === 0 && (arg.slice(0, 1) === '-' && (cfg[arg.slice(1)] = argv[i + 1]));
     return cfg;
-  }, /*init cfg:*/ {local_host: 'localhost', local_port: 8080, remote_host: 8080, remote_port: 8080});
-  cfg.local_host = cfg.local_host || cfg.host;
-  cfg.local_port = Number(cfg.local_port || cfg.port);
-  cfg.remote_port = Number(cfg.remote_port);
-  cfg.usr = cfg.usr || cfg.user || '';
-  cfg.pwd = cfg.pwd || cfg.password || '';
+  }, /*init cfg:*/ {local_host: 'localhost', local_port: 8080, remote_port: 8080});
+  cfg.local_host = cfg.local_host || 'localhost';
+  cfg.local_port = (cfg.local_port & 0xffff) || 8080;
+  cfg.remote_port = (cfg.remote_port & 0xffff) || 8080;
   cfg.as_pac_server = cfg.as_pac_server === 'true';
   cfg.is_remote_https = cfg.is_remote_https === 'true';
   cfg.chk_remote_cert = cfg.chk_remote_cert !== 'false';

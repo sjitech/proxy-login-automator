@@ -1,14 +1,12 @@
 # proxy-login-automator
-A local proxy which forward requests to real proxy with password injected, even for proxies defined inside PAC.
+Automatically send user/password to http proxy server via a local forwarder. PAC is also supported.
 
-- The proxy means proxy server for HTTP/HTTPS browsing.
-
-- This is done by create a local proxy server as a trampoline to real proxy server.
-You change your browser's proxy config to use the local proxy server so that you can browse internt 
+- This is done by creating a local proxy server which forward requests to real proxy server with password injected.
+You change your browser's proxy config to use the local proxy server so that you can browse internet 
 without being asked for user/password.
 
 - Can act as a [PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) server if real proxy provides PAC. 
-In this case, each real proxy server defined in PAC will be dynamically replaced with a local proxy
+In this case, each real proxy server defined in PAC will be dynamically replaced with a local proxy server
 which forward requests to real proxy with password injected.
 
 ## Usage
