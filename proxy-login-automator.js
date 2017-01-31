@@ -180,8 +180,8 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
     if (req.headers['host']) { //to avoid certificate verification error
       req.headers['host'] = remote_host + ( req.headers['host'].indexOf(':') >= 0 ? (':' + remote_port) : '');
     }
-    if (!req.headers['proxy-authorization']) {
-      req.headers['proxy-authorization'] = buf_proxy_basic_auth.slice('Proxy-Authorization: '.length);
+    if (!req.headers['authorization']) {
+      req.headers['authorization'] = buf_proxy_basic_auth.slice('Proxy-Authorization: '.length).toString();
     }
     internal_req.headers = req.headers;
     internal_req.keepAlive = req.headers['connection'] === 'keep-alive';
