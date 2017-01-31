@@ -21,18 +21,20 @@ which forward requests to real proxy with password injected.
 - Parameters of `proxy-login-automator.js`:
 
     ```
-    -local_host host        listening address. Default: localhost. (* means all interfaces)
-    -local_port port        listening port. Default: 8080
-    -remote_host host       real proxy server address
-    -remote_port port       real proxy server port. Default: 8080
-    -usr user       proxy user id
-    -pwd password   proxy user password
-    -as_pac_server true/false       used as pac(proxy auto configuration) server. Default: false
-    -is_remote_https true/false     talk to real proxy server with HTTPS. Default: false
-    -chk_remote_cert true/false     check real proxy server SSL certificate. Default: true
+    -local_host host        Listening address. Default: localhost. (* means all interfaces)
+    -local_port port        Listening port. Default: 8080
+    -remote_host host       Real proxy/PAC server address
+    -remote_port port       Real proxy/PAC server port. Default: 8080
+    -usr user               Real proxy/PAC server user id
+    -pwd password           Real proxy/PAC user password
+    -as_pac_server true/false       Treat `remote_host` as a PAC server. Default: false
+    
+    -is_remote_https true/false     Talk to `remote_host` with HTTPS. Default: false
+    -ignore_https_cert true/false   ignore error when verificate HTTPS server certificate. Default: false
+    -are_remotes_in_pac_https true/false    Talk to proxy servers defined in PAC with HTTPS. Default: false
     ```
 
-##Example1: normal Proxy Server
+###Normal Proxy Server
 
 - You have a proxy server `http://REAL_PROXY_IP:8080`
 
@@ -41,7 +43,7 @@ which forward requests to real proxy with password injected.
 - You run following command to create a local trampoline at `localhost:8081`
 
     ```
-    node proxy-login-automator.js -local_port 8081 -remote_host REAL_PROXY_IP -remote_port 8080 -usr USER -pwd PASSWORD
+    node proxy-login-automator.js -local_port 8081 -remote_host REAL_PROXY_IP -remote_port 8080 -usr USR -pwd PWD
     ```
 
 - Then you can set your browser's proxy ip:port = `localhost:8081` manually or close Chrome then run following command
@@ -50,13 +52,13 @@ which forward requests to real proxy with password injected.
     path_of_Chrome --proxy-server=http://localhost:8081
     ```
 
-##Example2: [PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) Server
+### [PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) Server
 
-- You have a pac server serving at `http://REAL_PROXY_IP:8080/REAL_PAC_PATH`
+- You have a pac server serving at `http://REAL_PROXY_IP:8080/PATH_OF_PAC`
 
     This server may require a user/password or not, it does not matter.
 
-    The REAL_PAC_PATH points to a [PAC file](https://en.wikipedia.org/wiki/Proxy_auto-config)
+    The PATH_OF_PAC points to a [PAC file](https://en.wikipedia.org/wiki/Proxy_auto-config)
     which contains instructions says
     ```
     /*on some condition ...*/ return "PROXY proxy1:port1"
@@ -67,22 +69,22 @@ which forward requests to real proxy with password injected.
      
     **Assume all user/password are same**.
   
-- You run following command to create a trampoline at `http://localhost:65000//REAL_PAC_PATH`
+- You run following command to create a trampoline at `http://localhost:65000//PATH_OF_PAC`
 
     ```
-	node proxy-login-automator.js -local_port 65000 -remote_host REAL_PROXY_IP -remote_port 8080 -usr USER -pwd PASSWORD -as_pac_server true
+	node proxy-login-automator.js -local_port 65000 -remote_host REAL_PROXY_IP -remote_port 8080 -usr USR -pwd PWD -as_pac_server true
 	```
 
     - This tool dynamically creates multiple child proxy servers which auto inject user/password when talking to real proxy servers.
     
-    - The child proxy servers will listen at `localhost:65001`, `localhost:65002` for proxy1:port1, proxy2:port2 ... respectively.
+    - The child proxy servers will listen at `localhost:65001`, `localhost:65002` ... for proxy1:port1, proxy2:port2 ... respectively.
   
     **Please specify large local port number because i use multiple local port incrementally like 65001, 65002, ....**
 
-- Then you can set your browser's PAC url = `http://localhost:65000/REAL_PAC_PATH` manually or close Chrome then run following command
+- Then you can set your browser's PAC url = `http://localhost:65000/PATH_OF_PAC` manually or close Chrome then run following command
 
     ```
-	path_of_Chrome --proxy-pac-url=http://localhost:65000/REAL_PAC_PATH
+	path_of_Chrome --proxy-pac-url=http://localhost:65000/PATH_OF_PAC
 	```
 
 ##Note for "Windows Store Apps"
@@ -97,7 +99,7 @@ See http://www.thewindowsclub.com/setup-proxy-metro-application-windows-8
 
 ##Note for other authentication(such as NTLM)
 
-This tool currently only support HTTP basic authentication to real proxy server. 
+This tool currently only support HTTP basic authentication to real proxy/PAC server. 
 
 If you want to use other authentication such as NTLM,
 you can use other tool such as [NGINX reverse proxy to NTLM authenticated http server](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#ntlm).
@@ -114,16 +116,20 @@ Currently only Chrome support HTTPS talking.
 
 So this tool only use HTTP to talk to real proxy server. **You can use NGINX to redirect HTTP to other HTTPS server**.
 
-###2017/01/30: now support talk to real proxy server with HTTPS by specify following parameters:
+###2017/01/30: now support talk to real proxy/PAC server with HTTPS by specify following parameters:
 
 ```
 -is_remote_https true
 ```
-in addition, to avoid SSL certificate verification error, you can specify
+in addition, to ignore error when verificate HTTPS server certificate, you can specify
 ```
--chk_remote_cert false
+-ignore_https_cert true
 ``` 
+For proxy servers defined in PAC, if they also need be talked with HTTPS, then specify
+```
+-are_remotes_in_pac_https true
+```
 
-Note: anyway, the local proxy server is always served as a HTTP server. 
+Note: anyway, the local proxy/PAC server is always served as a HTTP server. 
 
 Good luck
