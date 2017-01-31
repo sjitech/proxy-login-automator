@@ -132,4 +132,8 @@ For proxy servers defined in PAC, if they also need be talked with HTTPS, then s
 
 Note: anyway, the local proxy/PAC server is always served as a HTTP server. 
 
+##Note for WebSocket
+
+This tool support WebSocket if the real proxy server supports.
+
 Good luck
