@@ -177,14 +177,11 @@ function createPacServer(local_host, local_port, remote_host, remote_port, buf_p
 
     internal_req.host = remote_host;
     internal_req.port = remote_port;
-    if (req.headers['host']) { //to avoid certificate verification error
-      req.headers['host'] = remote_host + ( req.headers['host'].indexOf(':') >= 0 ? (':' + remote_port) : '');
-    }
+    req.headers['host'] = remote_host + ':' + remote_port;
     if (!req.headers['authorization']) {
       req.headers['authorization'] = buf_proxy_basic_auth.slice('Proxy-Authorization: '.length).toString();
     }
     internal_req.headers = req.headers;
-    internal_req.keepAlive = req.headers['connection'] === 'keep-alive';
     internal_req.rejectUnauthorized = !ignore_https_cert; //only used for SSL
 
     (is_remote_https ? https : http).get(internal_req, function (internal_res) {
