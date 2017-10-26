@@ -5,6 +5,7 @@ var HTTPParser = process.binding('http_parser').HTTPParser;
 var http = require('http'), https = require('https');
 var url = require('url');
 var mysql = require('mysql');
+var db_config = require('./config');
 
 function main() {
   //convert `-key value` to cfg[key]=value
@@ -12,10 +13,10 @@ function main() {
     return (i % 2 === 0 && (arg.slice(0, 1) === '-' && (cfg[arg.slice(1)] = argv[i + 1])), cfg);
   }, {bot_id:'' , local_host: '', local_port: 0, remote_host: '', remote_port: 0, usr: '', pwd: '', as_pac_server: 0});
     var con = mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "secret",
-        database: "homestead",
+        host: db_config.host,
+        user: db_config.user,
+        password: db_config.password,
+        database: db_config.database,
     });
     con.connect(function(err) {
         if (err) throw err;

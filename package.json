@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/sjitech/proxy-login-automator/issues"
   },
-  "homepage": "https://github.com/sjitech/proxy-login-automator#readme"
+  "homepage": "https://github.com/sjitech/proxy-login-automator#readme",
+  "dependencies": {
+    "mysql": "2.15.0"
+  }
 }
