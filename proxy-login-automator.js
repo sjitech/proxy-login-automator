@@ -4,45 +4,72 @@ var net = require('net'), tls = require('tls');
 var HTTPParser = process.binding('http_parser').HTTPParser;
 var http = require('http'), https = require('https');
 var url = require('url');
+var mysql = require('mysql');
 
 function main() {
   //convert `-key value` to cfg[key]=value
   var cfg = process.argv.slice(2/*skip ["node", "xxx.js"]*/).reduce(function (cfg, arg, i, argv) {
     return (i % 2 === 0 && (arg.slice(0, 1) === '-' && (cfg[arg.slice(1)] = argv[i + 1])), cfg);
-  }, {local_host: '', local_port: 0, remote_host: '', remote_port: 0, usr: '', pwd: '', as_pac_server: 0});
-  cfg.local_host = cfg.local_host || 'localhost';
-  cfg.local_port = (cfg.local_port & 0xffff) || 8080;
-  cfg.remote_port = (cfg.remote_port & 0xffff) || 8080;
-  cfg.as_pac_server = cfg.as_pac_server === 'true';
-  cfg.is_remote_https = cfg.is_remote_https === 'true';
-  cfg.ignore_https_cert = cfg.ignore_https_cert === 'true';
-  cfg.are_remotes_in_pac_https = cfg.are_remotes_in_pac_https === 'true';
+  }, {bot_id:'' , local_host: '', local_port: 0, remote_host: '', remote_port: 0, usr: '', pwd: '', as_pac_server: 0});
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "secret",
+        database: "homestead",
+    });
+    con.connect(function(err) {
+        if (err) throw err;
+        console.log("Connected!");
+        var proxy = "SELECT address, auth from proxies JOIN bots ON bots.proxy_id=proxies.id WHERE bots.id = " + cfg.bot_id;
+        con.query(proxy, function (err, result){
+            if (err) throw err;
+            var address = result[0].address;
+            var auth = result[0].auth;
+            address =  address.split(":");
+            auth =  auth.split(":");
+            cfg.remote_host = address[0];
+            cfg.remote_port = address[1];
+            cfg.usr = auth[0];
+            cfg.pwd = auth[1];
 
-  if (!cfg.local_host || !cfg.local_port || !cfg.remote_host || !cfg.remote_port || !cfg.usr || !cfg.pwd)
-    return console.error('Usage of parameters:\n'
-      + '-local_host host\t' + 'Listening address. Default: localhost. (* means all interfaces)\n'
-      + '-local_port port\t' + 'Listening port. Default: 8080\n'
-      + '-remote_host host\t' + 'Real proxy/PAC server address\n'
-      + '-remote_port port\t' + 'Real proxy/PAC server port. Default: 8080\n'
-      + '-usr user\t\t' + 'Real proxy/PAC server user id\n'
-      + '-pwd password\t\t' + 'Real proxy/PAC user password\n'
-      + '-as_pac_server true/false\t' + 'Treat `remote_host` as a PAC server. Default: false\n'
-      + '\n'
-      + '-is_remote_https true/false\t' + 'Talk to `remote_host` with HTTPS. Default: false\n'
-      + '-ignore_https_cert true/false\t' + 'ignore error when verificate HTTPS server certificate. Default: false\n'
-      + '-are_remotes_in_pac_https true/false\t' + 'Talk to proxy servers defined in PAC with HTTPS. Default: false\n'
-    );
-  if (cfg.as_pac_server && (cfg.local_host === '*' || cfg.local_host === '0.0.0.0' || cfg.local_host === '::')) {
-    return console.error('when use as a PAC server, the local_host parameter must be a definite address');
-  }
-  console.log('Using parameters: ' + JSON.stringify(cfg, null, '  '));
-  cfg.buf_proxy_basic_auth = new Buffer('Proxy-Authorization: Basic ' + new Buffer(cfg.usr + ':' + cfg.pwd).toString('base64'));
+            cfg.local_host = 'localhost';
+            cfg.local_port = parseInt(cfg.bot_id) + 8080;
+            cfg.as_pac_server = false;
+            cfg.is_remote_https = false;
+            cfg.ignore_https_cert = true;
+            cfg.are_remotes_in_pac_https = false;
 
-  if (cfg.as_pac_server) {
-    createPacServer(cfg.local_host, cfg.local_port, cfg.remote_host, cfg.remote_port, cfg.buf_proxy_basic_auth, cfg.is_remote_https, cfg.ignore_https_cert, cfg.are_remotes_in_pac_https);
-  } else {
-    createPortForwarder(cfg.local_host, cfg.local_port, cfg.remote_host, cfg.remote_port, cfg.buf_proxy_basic_auth, cfg.is_remote_https, cfg.ignore_https_cert);
-  }
+
+            if (!cfg.local_host || !cfg.local_port || !cfg.remote_host || !cfg.remote_port || !cfg.usr || !cfg.pwd)
+                return console.error('Usage of parameters:\n'
+                    + '-local_host host\t' + 'Listening address. Default: localhost. (* means all interfaces)\n'
+                    + '-local_port port\t' + 'Listening port. Default: 8080\n'
+                    + '-remote_host host\t' + 'Real proxy/PAC server address\n'
+                    + '-remote_port port\t' + 'Real proxy/PAC server port. Default: 8080\n'
+                    + '-usr user\t\t' + 'Real proxy/PAC server user id\n'
+                    + '-pwd password\t\t' + 'Real proxy/PAC user password\n'
+                    + '-as_pac_server true/false\t' + 'Treat `remote_host` as a PAC server. Default: false\n'
+                    + '\n'
+                    + '-is_remote_https true/false\t' + 'Talk to `remote_host` with HTTPS. Default: false\n'
+                    + '-ignore_https_cert true/false\t' + 'ignore error when verificate HTTPS server certificate. Default: false\n'
+                    + '-are_remotes_in_pac_https true/false\t' + 'Talk to proxy servers defined in PAC with HTTPS. Default: false\n'
+                );
+
+            if (cfg.as_pac_server && (cfg.local_host === '*' || cfg.local_host === '0.0.0.0' || cfg.local_host === '::')) {
+                return console.error('when use as a PAC server, the local_host parameter must be a definite address');
+            }
+
+            console.log('Using parameters: ' + JSON.stringify(cfg, null, '  '));
+
+            cfg.buf_proxy_basic_auth = new Buffer('Proxy-Authorization: Basic ' + new Buffer(cfg.usr + ':' + cfg.pwd).toString('base64'));
+
+            if (cfg.as_pac_server) {
+                createPacServer(cfg.local_host, cfg.local_port, cfg.remote_host, cfg.remote_port, cfg.buf_proxy_basic_auth, cfg.is_remote_https, cfg.ignore_https_cert, cfg.are_remotes_in_pac_https);
+            } else {
+                createPortForwarder(cfg.local_host, cfg.local_port, cfg.remote_host, cfg.remote_port, cfg.buf_proxy_basic_auth, cfg.is_remote_https, cfg.ignore_https_cert);
+            }
+        });
+    });
 }
 
 var CR = 0xd, LF = 0xa, BUF_CR = new Buffer([0xd]), BUF_CR_LF_CR_LF = new Buffer([0xd, 0xa, 0xd, 0xa]), BUF_LF_LF = new Buffer([0xa, 0xa]);
