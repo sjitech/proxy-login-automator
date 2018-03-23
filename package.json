@@ -2,7 +2,7 @@
   "name": "proxy-login-automator",
   "version": "1.1.5",
   "description": "Automatically send user/password to http proxy server via a local forwarder. PAC is also supported.",
-  "bin": {"proxy-login-automator.js": "./proxy-login-automator.js"},
+  "bin": {"proxy-login-automator": "./bin/proxy-login-automator.js"},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
