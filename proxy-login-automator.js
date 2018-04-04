@@ -45,7 +45,8 @@ function main() {
   }
 }
 
-var CR = 0xd, LF = 0xa, BUF_CR = new Buffer([0xd]), BUF_CR_LF_CR_LF = new Buffer([0xd, 0xa, 0xd, 0xa]), BUF_LF_LF = new Buffer([0xa, 0xa]);
+var CR = 0xd, LF = 0xa, BUF_CR = new Buffer([0xd]), BUF_CR_LF_CR_LF = new Buffer([0xd, 0xa, 0xd, 0xa]),
+  BUF_LF_LF = new Buffer([0xa, 0xa]), BUF_PROXY_CONNECTION_CLOSE = new Buffer('Proxy-Connection: close');
 var STATE_NONE = 0, STATE_FOUND_LF = 1, STATE_FOUND_LF_CR = 2;
 
 function createPortForwarder(local_host, local_port, remote_host, remote_port, buf_proxy_basic_auth, is_remote_https, ignore_https_cert) {
@@ -89,6 +90,10 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
     var state = STATE_NONE;
 
     socket.on('data', function (buf) {
+      if (!parser) {
+        realCon.write(buf);
+        return
+      }
       //console.log('[' + remote_host + ':' + remote_port + ']>>>>' + (Date.t = new Date()) + '.' + Date.t.getMilliseconds() + '\n' + buf.toString('ascii'));
       //var ret = parser.execute(buf);
       //console.log('\n\n----parser result: ' + ret + ' buf len:' + buf.length);
@@ -123,6 +128,28 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
             buf_ary.push(buf_proxy_basic_auth);
             buf_ary.push(state === STATE_FOUND_LF_CR ? BUF_CR_LF_CR_LF : BUF_LF_LF);
 
+            // TODO: this is not a strict way to check whether the request is a CONNECT request
+            if (buf_ary[0].slice(0, 7).toString() == 'CONNECT') {
+              //tell proxy-server to NOT to reuse proxy connection when https end
+              var old_h = buf_ary[0].toString();
+              var new_h = old_h.replace(/\nProxy-Connection:[^\r\n]*/i, '\nProxy-Connection: close');
+              buf_ary[0] = new Buffer(new_h);
+              if (new_h.length === old_h) {
+                buf_ary.push(BUF_PROXY_CONNECTION_CLOSE);
+                buf_ary.push(state === STATE_FOUND_LF_CR ? BUF_CR_LF_CR_LF : BUF_LF_LF);
+              }
+
+              //entered pass-through mode for TLS, so no need to parse HTTP header
+              parser.close();
+              parser = null;
+
+              buf_ary.push(buf.slice(i + 1));
+              realCon.write(Buffer.concat(buf_ary));
+
+              state = STATE_NONE;
+              return;
+            }
+
             unsavedStart = i + 1;
             state = STATE_NONE;
           }
@@ -150,10 +177,13 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
       realCon.write(buf);
 
     }).on('end', cleanup).on('close', cleanup).on('error', function (err) {
-      console.error('[LocalProxy(:' + local_port + ')][Incoming connection] ' + err);
+      if (!socket.__cleanup) {
+        console.error('[LocalProxy(:' + local_port + ')][Incoming connection] ' + err);
+      }
     });
 
     function cleanup() {
+      socket.__cleanup = true;
       if (parser) {
         parser.close();
         parser = null;
