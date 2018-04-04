@@ -16,7 +16,7 @@ which forward requests to real proxy with password injected.
 - Download & cd this project dir, run `node proxy-login-automator.js ...`. 
 
   For Linux/Mac users, you can install it by `npm install -g proxy-login-automator` 
-  then run `proxy-login-automator.js` directly. 
+  then run `proxy-login-automator` directly.
 
 - Parameters of `proxy-login-automator.js`:
 
@@ -27,10 +27,10 @@ which forward requests to real proxy with password injected.
     -remote_port port       Real proxy/PAC server port. Default: 8080
     -usr user               Real proxy/PAC server user id
     -pwd password           Real proxy/PAC user password
-    -as_pac_server true/false       Treat `remote_host` as a PAC server. Default: false
+    -as_pac_server true/false       Treat real proxy/PAC server as a PAC server. Default: false
     
-    -is_remote_https true/false     Talk to `remote_host` with HTTPS. Default: false
-    -ignore_https_cert true/false   ignore error when verificate HTTPS server certificate. Default: false
+    -is_remote_https true/false     Talk to real proxy/PAC server with HTTPS. Default: false
+    -ignore_https_cert true/false   ignore error when verify certificate of real proxy/PAC server. Default: false
     -are_remotes_in_pac_https true/false    Talk to proxy servers defined in PAC with HTTPS. Default: false
     ```
 
@@ -121,7 +121,7 @@ So this tool only use HTTP to talk to real proxy server. **You can use NGINX to 
 ```
 -is_remote_https true
 ```
-in addition, to ignore error when verificate HTTPS server certificate, you can specify
+in addition, to ignore error when verify HTTPS server certificate, you can specify
 ```
 -ignore_https_cert true
 ``` 

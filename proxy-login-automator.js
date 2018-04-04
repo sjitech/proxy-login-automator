@@ -26,10 +26,10 @@ function main() {
       + '-remote_port port\t' + 'Real proxy/PAC server port. Default: 8080\n'
       + '-usr user\t\t' + 'Real proxy/PAC server user id\n'
       + '-pwd password\t\t' + 'Real proxy/PAC user password\n'
-      + '-as_pac_server true/false\t' + 'Treat `remote_host` as a PAC server. Default: false\n'
+      + '-as_pac_server true/false\t' + 'Treat real proxy/PAC server as a PAC server. Default: false\n'
       + '\n'
-      + '-is_remote_https true/false\t' + 'Talk to `remote_host` with HTTPS. Default: false\n'
-      + '-ignore_https_cert true/false\t' + 'ignore error when verificate HTTPS server certificate. Default: false\n'
+      + '-is_remote_https true/false\t' + 'Talk to real proxy/PAC server with HTTPS. Default: false\n'
+      + '-ignore_https_cert true/false\t' + 'ignore error when verify certificate of real proxy/PAC server. Default: false\n'
       + '-are_remotes_in_pac_https true/false\t' + 'Talk to proxy servers defined in PAC with HTTPS. Default: false\n'
     );
   if (cfg.as_pac_server && (cfg.local_host === '*' || cfg.local_host === '0.0.0.0' || cfg.local_host === '::')) {
