@@ -77,10 +77,14 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
     });
 
     var parser = new HTTPParser(HTTPParser.REQUEST);
-    parser[HTTPParser.kOnHeadersComplete] = function () {
+    parser[HTTPParser.kOnHeadersComplete] = function (versionMajor, versionMinor, headers, method,
+                                                      url, statusCode, statusMessage, upgrade,
+                                                      shouldKeepAlive) {
       //console.log('---- kOnHeadersComplete----');
       //console.log(arguments);
       parser.__is_headers_complete = true;
+      parser.__upgrade = upgrade;
+      parser.__method = method;
     };
     //parser[HTTPParser.kOnMessageComplete] = function () {
     //    console.log('---- kOnMessageComplete----');
@@ -128,18 +132,8 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
             buf_ary.push(buf_proxy_basic_auth);
             buf_ary.push(state === STATE_FOUND_LF_CR ? BUF_CR_LF_CR_LF : BUF_LF_LF);
 
-            // TODO: this is not a strict way to check whether the request is a CONNECT request
-            if (buf_ary[0].slice(0, 7).toString() == 'CONNECT') {
-              //tell proxy-server to NOT to reuse proxy connection when https end
-              var old_h = buf_ary[0].toString();
-              var new_h = old_h.replace(/\nProxy-Connection:[^\r\n]*/i, '\nProxy-Connection: close');
-              buf_ary[0] = new Buffer(new_h);
-              if (new_h.length === old_h) {
-                buf_ary.push(BUF_PROXY_CONNECTION_CLOSE);
-                buf_ary.push(state === STATE_FOUND_LF_CR ? BUF_CR_LF_CR_LF : BUF_LF_LF);
-              }
-
-              //entered pass-through mode for TLS, so no need to parse HTTP header
+            // stop intercepting packets if encountered TLS and WebSocket handshake
+            if (parser.__method === 5 /*CONNECT*/ || parser.__upgrade) {
               parser.close();
               parser = null;
 
