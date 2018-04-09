@@ -46,10 +46,15 @@ which forward requests to real proxy with password injected.
     node proxy-login-automator.js -local_port 8081 -remote_host REAL_PROXY_IP -remote_port 8080 -usr USR -pwd PWD
     ```
 
-- Then you can set your browser's proxy ip:port = `localhost:8081` manually or close Chrome then run following command
+- Then you can start new process of chrome with proxy set to `localhost:8081`
 
+    For Chrome on MacOS
     ```
-    path_of_Chrome --proxy-server=http://localhost:8081
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --user-data-dir=$HOME/chrome_data/ --proxy-server=http://localhost:8081 >/dev/null 2>&1 &
+    ```
+    For Chrome on Windows:
+    ```
+    'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe' --user-data-dir=%%APPDATA%%\chrome_data --proxy-server=http://localhost:8081
     ```
 
 ### [PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) Server
