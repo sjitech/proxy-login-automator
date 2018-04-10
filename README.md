@@ -62,7 +62,7 @@ which forward requests to real proxy with password injected.
         -local_port 8081 \
         -remote_host REAL_PROXY_IP \
         -remote_port 8080 \
-        -usr USR -pwd PWD
+        -usr USER -pwd PASSWORD
     ```
     Windows:
     ```
@@ -70,10 +70,10 @@ which forward requests to real proxy with password injected.
         -local_port 8081 ^
         -remote_host REAL_PROXY_IP ^
         -remote_port 8080 ^
-        -usr USR -pwd PWD
+        -usr USER -pwd PASSWORD
     ```
 
-- Then you can set your browser' proxy = `localhost:8081`
+- Then you can set your browser's proxy = `localhost:8081`
 
     As a quick test, you can start a new process of chrome with the local proxy:
 
@@ -127,7 +127,7 @@ which forward requests to real proxy with password injected.
 	    -local_port 65000 \
 	    -remote_host REAL_PAC_SERVER_IP \
 	    -remote_port 8080 \
-	    -usr USR -pwd PWD \
+	    -usr USER -pwd PASSWORD \
 	    -as_pac_server true
 	```
     Windows:
@@ -136,7 +136,7 @@ which forward requests to real proxy with password injected.
 	    -local_port 65000 ^
 	    -remote_host REAL_PAC_SERVER_IP ^
 	    -remote_port 8080 ^
-	    -usr USR -pwd PWD ^
+	    -usr USER -pwd PASSWORD ^
 	    -as_pac_server true
 	```
 
@@ -177,7 +177,7 @@ Windows Store Apps may have its own network policy such as how to connect to int
 There are group policy Computer Configuration\Policies\Administrative Templates\Network\Network Isolation\Internet proxy servers for apps to serve these apps.
 
 To change proxy of "Windows Store Apps"
-See http://www.thewindowsclub.com/setup-proxy-metro-application-windows-8
+See [setup-proxy-metro-application-windows-8](http://www.thewindowsclub.com/setup-proxy-metro-application-windows-8)
 
 ## Note for other authentication(such as NTLM)
 
@@ -185,6 +185,8 @@ This tool currently only support HTTP basic authentication to real proxy/PAC ser
 
 If you want to use other authentication such as NTLM,
 you can use other tool such as [NGINX reverse proxy to NTLM authenticated http server](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#ntlm).
+
+2018/04/10: plan to support NTLM and other normal authentication.
 
 ## Note for HTTPS
 
