@@ -106,12 +106,6 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
 
       var buf_ary = [], unsavedStart = 0, buf_len = buf.length;
 
-      //process orphan CR
-      if (state === STATE_FOUND_LF_CR && buf[0] !== LF) {
-        parser.execute(BUF_CR);
-        buf_ary.push(BUF_CR);
-      }
-
       for (var i = 0; i < buf_len; i++) {
         //find first LF
         if (state === STATE_NONE) {
@@ -159,16 +153,12 @@ function createPortForwarder(local_host, local_port, remote_host, remote_port, b
       }
 
       if (unsavedStart < buf_len) {
-        //strip last CR if found LF_CR
-        buf = buf.slice(unsavedStart, state === STATE_FOUND_LF_CR ? buf_len - 1 : buf_len);
-        if (buf.length) {
-          parser.execute(buf);
-          buf_ary.push(buf);
-        }
+        buf = buf.slice(unsavedStart, buf_len);
+        parser.execute(buf);
+        buf_ary.push(buf);
       }
 
-      buf = Buffer.concat(buf_ary);
-      realCon.write(buf);
+      realCon.write(Buffer.concat(buf_ary));
 
     }).on('end', cleanup).on('close', cleanup).on('error', function (err) {
       if (!socket.__cleanup) {
