@@ -149,7 +149,15 @@ which forward requests to real proxy with password injected.
     ...
     ```
 
-    **Please specify large local port number because i use multiple local port incrementally like `65001`, `65002`, ....**
+    **Please specify a big port number as PAC server port because this tool allocate ports INCREMENTALLY like**
+    ```
+    65000 + 1 for first detected proxy server from PAC
+    65000 + 2 for second detected proxy server from PAC
+    ....
+    65000 + Count Of Real Proxy Servers
+    ```
+
+    If you specify a small port number as PAC server port, then the port allocation may fail due to other process may have been using that port.
 
 - Then you can set your browser's PAC url = `http://localhost:65000/PAC_PATH/PAC_NAME`
 
@@ -168,6 +176,8 @@ which forward requests to real proxy with password injected.
       --user-data-dir=%APPDATA%\chrome_data \
       --proxy-pac-url=http://localhost:65000/PAC_PATH/PAC_NAME
     ```
+
+----
 
 ## Note for "Windows Store Apps"
 
