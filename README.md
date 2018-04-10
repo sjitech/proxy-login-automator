@@ -1,5 +1,5 @@
 # proxy-login-automator
-Automatically send user/password to http proxy server via a local forwarder. PAC is also supported.
+A single node.js script to automatically inject user/password to http proxy server via a local forwarder
 
 - This is done by creating a local proxy server which forward requests to real proxy server with password injected.
 You change your browser's proxy config to use the local proxy server so that you can browse internet 
@@ -13,10 +13,24 @@ which forward requests to real proxy with password injected.
 
 - Please install node.js first.
  
-- Download & cd this project dir, run `node proxy-login-automator.js ...`. 
+- Install & Run
 
-  For Linux/Mac users, you can install it by `npm install -g proxy-login-automator` 
-  then run `proxy-login-automator` directly.
+  - Normal way: Download & cd this project dir then run the js from node.
+  ```
+  git clone https://github.com/sjitech/proxy-login-automator
+  node proxy-login-automator/proxy-login-automator.js
+  ```
+
+  - NPM way: You can also install it by npm then run it directly
+  ```
+  npm install -g proxy-login-automator
+  proxy-login-automator
+  ```
+
+  - Geek way: If you do not want to save anything to your disk then you can run this command in `bash`
+  ```
+  node <(curl -sSL https://raw.githubusercontent.com/sjitech/proxy-login-automator/master/proxy-login-automator.js)
+  ```
 
 - Parameters of `proxy-login-automator.js`:
 
@@ -42,55 +56,118 @@ which forward requests to real proxy with password injected.
 
 - You run following command to create a local trampoline at `localhost:8081`
 
+    Mac/Linux:
     ```
-    node proxy-login-automator.js -local_port 8081 -remote_host REAL_PROXY_IP -remote_port 8080 -usr USR -pwd PWD
+    node proxy-login-automator.js \
+        -local_port 8081 \
+        -remote_host REAL_PROXY_IP \
+        -remote_port 8080 \
+        -usr USR -pwd PWD
+    ```
+    Windows:
+    ```
+    node proxy-login-automator.js ^
+        -local_port 8081 ^
+        -remote_host REAL_PROXY_IP ^
+        -remote_port 8080 ^
+        -usr USR -pwd PWD
     ```
 
-- Then you can start new process of chrome with proxy set to `localhost:8081`
+- Then you can set your browser' proxy = `localhost:8081`
 
-    For Chrome on MacOS
+    As a quick test, you can start a new process of chrome with the local proxy:
+
+    MacOS/Linux: (for Linux, just change the path of Chrome please):
     ```
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --user-data-dir=$HOME/chrome_data/ --proxy-server=http://localhost:8081 >/dev/null 2>&1 &
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+        --user-data-dir=$HOME/chrome_data/ \
+        --proxy-server=http://localhost:8081 \
+        >/dev/null 2>&1 &
     ```
-    For Chrome on Windows:
+    Windows:
     ```
-    'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe' --user-data-dir=%%APPDATA%%\chrome_data --proxy-server=http://localhost:8081
+    "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" ^
+        --user-data-dir=%APPDATA%\chrome_data ^
+        --proxy-server=http://localhost:8081
     ```
 
 ### [PAC(proxy auto configuration)](https://en.wikipedia.org/wiki/Proxy_auto-config) Server
 
-- You have a pac server serving at `http://REAL_PROXY_IP:8080/PATH_OF_PAC`
+- You have a pac server serving at `http://REAL_PAC_SERVER_IP:8080/PAC_PATH/PAC_NAME`
 
     This server may require a user/password or not, it does not matter.
 
-    The PATH_OF_PAC points to a [PAC file](https://en.wikipedia.org/wiki/Proxy_auto-config)
+    The PAC_PATH/PAC_NAME points to a [PAC file](https://en.wikipedia.org/wiki/Proxy_auto-config)
     which contains instructions says
     ```
-    /*on some condition ...*/ return "PROXY proxy1:port1"
-    /*on another condition...*/ return "PROXY proxy2:port2"
-    /*on other condition...*/ return "DIRECT"
+    function FindProxyForURL(url, host) {
+        if (shExpMatch(url,"*.google.com*")) return "PROXY proxy1:port1"
+        if (shExpMatch(url,"*.microsoft.com*")) return "PROXY proxy2:port2"
+        ...
+        return "DIRECT"
+    }
     ```
-    means use child proxy servers proxy1:port1 and proxy2:port2.
+    means use child proxy servers
+    ```
+    proxy1:port1
+    proxy2:port2
+    ...
+    ```
 
     **Assume all user/password are same**.
 
-- You run following command to create a trampoline at `http://localhost:65000//PATH_OF_PAC`
+    If you want use your own local PAC file, you need set up a local http server to serve the PAC file.
+    See [use a local pac](https://github.com/sjitech/proxy-login-automator/issues/14#issuecomment-379951268).
 
+- You run following command to create a trampoline at `http://localhost:65000/PAC_PATH/PAC_NAME`
+
+    Mac/Linux:
     ```
-	node proxy-login-automator.js -local_port 65000 -remote_host REAL_PROXY_IP -remote_port 8080 -usr USR -pwd PWD -as_pac_server true
+	node proxy-login-automator.js \
+	    -local_port 65000 \
+	    -remote_host REAL_PAC_SERVER_IP \
+	    -remote_port 8080 \
+	    -usr USR -pwd PWD \
+	    -as_pac_server true
+	```
+    Windows:
+    ```
+	node proxy-login-automator.js ^
+	    -local_port 65000 ^
+	    -remote_host REAL_PAC_SERVER_IP ^
+	    -remote_port 8080 ^
+	    -usr USR -pwd PWD ^
+	    -as_pac_server true
 	```
 
     - This tool dynamically creates multiple child proxy servers which auto inject user/password when talking to real proxy servers.
 
-    - The child proxy servers will listen at `localhost:65001`, `localhost:65002` ... for proxy1:port1, proxy2:port2 ... respectively.
-
-    **Please specify large local port number because i use multiple local port incrementally like 65001, 65002, ....**
-
-- Then you can set your browser's PAC url = `http://localhost:65000/PATH_OF_PAC` manually or close Chrome then run following command
-
+    - The child proxy servers will listen at
     ```
-	path_of_Chrome --proxy-pac-url=http://localhost:65000/PATH_OF_PAC
-	```
+    localhost:65001 for proxy1:port1
+    localhost:65002 for proxy2:port2
+    ...
+    ```
+
+    **Please specify large local port number because i use multiple local port incrementally like `65001`, `65002`, ....**
+
+- Then you can set your browser's PAC url = `http://localhost:65000/PAC_PATH/PAC_NAME`
+
+    As a quick test, you can start a new process of chrome with the local PAC server:
+
+    MacOS/Linux: (for Linux, just change the path of Chrome please):
+    ```
+    “/Applications/Google Chrome.app/Contents/MacOS/Google Chrome” \
+       --user-data-dir=$HOME/chrome_data/ \
+       --proxy-pac-url=http://localhost:65000/PAC_PATH/PAC_NAME \
+       >/dev/null 2>&1 &
+    ```
+    Windows:
+    ```
+    "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" \
+      --user-data-dir=%APPDATA%\chrome_data \
+      --proxy-pac-url=http://localhost:65000/PAC_PATH/PAC_NAME
+    ```
 
 ## Note for "Windows Store Apps"
 
