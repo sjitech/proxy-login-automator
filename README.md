@@ -177,6 +177,17 @@ which forward requests to real proxy with password injected.
       --proxy-pac-url=http://localhost:65000/PAC_PATH/PAC_NAME
     ```
 
+## Docker
+
+A dockerized version of this tool is availbale;
+
+```
+docker run -p 8080:8080 --env REMOTE_HOST=proxy1.proxy.com:1234,proxy2.proxy.com:1234 --env REMOTE_USER=user --env REMOTE_PASSWORD=password --env IGNORE_CERT=true --env REMOTE_HTTPS=false ejoebstl/proxy-login-automator
+
+```
+
+Please find the documentation for the docker image [here](https://github.com/ejoebstl/proxy-login-automator-docker).
+
 ----
 
 ## Note for "Windows Store Apps"
