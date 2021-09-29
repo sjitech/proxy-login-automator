@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/sjitech/proxy-login-automator/issues"
   },
-  "homepage": "https://github.com/sjitech/proxy-login-automator#readme"
+  "homepage": "https://github.com/sjitech/proxy-login-automator#readme",
+  "dependencies": {
+    "http-parser-js": "^0.5.3"
+  }
 }
