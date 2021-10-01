@@ -36,7 +36,7 @@ function main() {
     return console.error('when use as a PAC server, the local_host parameter must be a definite address');
   }
   console.log('Using parameters: ' + JSON.stringify(cfg, null, '  '));
-  cfg.buf_proxy_basic_auth = new Buffer('Proxy-Authorization: Basic ' + new Buffer(cfg.usr + ':' + cfg.pwd).toString('base64'));
+  cfg.buf_proxy_basic_auth = Buffer.from('Proxy-Authorization: Basic ' + Buffer.from(cfg.usr + ':' + cfg.pwd).toString('base64'));
 
   if (cfg.as_pac_server) {
     createPacServer(cfg.local_host, cfg.local_port, cfg.remote_host, cfg.remote_port, cfg.buf_proxy_basic_auth, cfg.is_remote_https, cfg.ignore_https_cert, cfg.are_remotes_in_pac_https);
@@ -45,8 +45,8 @@ function main() {
   }
 }
 
-var CR = 0xd, LF = 0xa, BUF_CR = new Buffer([0xd]), BUF_CR_LF_CR_LF = new Buffer([0xd, 0xa, 0xd, 0xa]),
-  BUF_LF_LF = new Buffer([0xa, 0xa]), BUF_PROXY_CONNECTION_CLOSE = new Buffer('Proxy-Connection: close');
+var CR = 0xd, LF = 0xa, BUF_CR = Buffer.from([0xd]), BUF_CR_LF_CR_LF = Buffer.from([0xd, 0xa, 0xd, 0xa]),
+  BUF_LF_LF = Buffer.from([0xa, 0xa]), BUF_PROXY_CONNECTION_CLOSE = Buffer.from('Proxy-Connection: close');
 var STATE_NONE = 0, STATE_FOUND_LF = 1, STATE_FOUND_LF_CR = 2;
 
 function createPortForwarder(local_host, local_port, remote_host, remote_port, buf_proxy_basic_auth, is_remote_https, ignore_https_cert) {
