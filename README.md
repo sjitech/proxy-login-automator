@@ -179,7 +179,9 @@ which forward requests to real proxy with password injected.
 
 ## Docker
 
-A dockerized version of this tool is availbale;
+A dockerized version of this tool is available.
+
+Here is an example to run it:
 
 ```
 docker run -p 8080:8080 --env REMOTE_HOST=proxy1.proxy.com:1234,proxy2.proxy.com:1234 --env REMOTE_USER=user --env REMOTE_PASSWORD=password --env IGNORE_CERT=true --env REMOTE_HTTPS=false ejoebstl/proxy-login-automator
